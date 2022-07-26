@@ -1,12 +1,22 @@
 package net.choc.entry.framework;
 
-import org.apache.flink.streaming.connectors.pulsar.FlinkPulsarSource;
-import org.apache.flink.streaming.connectors.pulsar.serialization.PulsarDeserializationSchema;
+import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
-import java.util.Properties;
 
-public class MySource<T> extends FlinkPulsarSource<T> {
-    public MySource(String serviceUrl, String adminUrl, PulsarDeserializationSchema<T> deserializer, Properties properties) {
-        super(serviceUrl, adminUrl, deserializer, properties);
+public class MySource implements SourceFunction<String> {
+    public MySource() {
+    }
+
+    @Override
+    public void run(SourceContext<String> ctx) throws Exception {
+        int count = 0;
+        for (int i = 0; i < 10; ++i) {
+            ctx.collect(Integer.toString(i));
+        }
+    }
+
+    @Override
+    public void cancel() {
+
     }
 }

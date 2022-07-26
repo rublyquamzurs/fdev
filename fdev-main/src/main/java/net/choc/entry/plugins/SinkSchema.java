@@ -1,27 +1,14 @@
 package net.choc.entry.plugins;
 
-import org.apache.flink.api.common.typeinfo.TypeHint;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.streaming.connectors.pulsar.serialization.PulsarSerializationSchema;
-import org.apache.pulsar.client.api.Schema;
-import org.apache.pulsar.client.api.TypedMessageBuilder;
+import org.apache.flink.connector.pulsar.sink.writer.context.PulsarSinkContext;
+import org.apache.flink.connector.pulsar.sink.writer.message.PulsarMessage;
+import org.apache.flink.connector.pulsar.sink.writer.serializer.PulsarSerializationSchema;
 
 public class SinkSchema implements PulsarSerializationSchema<byte[]> {
     private final byte[] mark = new byte[]{'A', 'B', 'C'};
 
     @Override
-    public void serialize(byte[] bytes, TypedMessageBuilder<byte[]> typedMessageBuilder) {
-        typedMessageBuilder.keyBytes(mark);
-        typedMessageBuilder.value(bytes);
-    }
-
-    @Override
-    public Schema<byte[]> getSchema() {
-        return Schema.BYTES;
-    }
-
-    @Override
-    public TypeInformation<byte[]> getProducedType() {
-        return TypeInformation.of(new TypeHint<>() {});
+    public PulsarMessage<?> serialize(byte[] bytes, PulsarSinkContext pulsarSinkContext) {
+        return null;
     }
 }

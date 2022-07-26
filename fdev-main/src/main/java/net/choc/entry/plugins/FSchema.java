@@ -7,13 +7,14 @@ import org.apache.flink.util.Collector;
 import org.apache.pulsar.client.api.Message;
 
 public class FSchema implements PulsarDeserializationSchema<byte[]> {
-    @Override
-    public void deserialize(Message<?> message, Collector<byte[]> collector) throws Exception {
-        collector.collect(message.getData());
-    }
 
     @Override
     public TypeInformation<byte[]> getProducedType() {
         return TypeInformation.of(new TypeHint<>() {});
+    }
+
+    @Override
+    public void deserialize(Message<byte[]> message, Collector<byte[]> collector) throws Exception {
+        collector.collect(message.getData());
     }
 }

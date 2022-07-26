@@ -1,30 +1,23 @@
 package net.choc.entry.framework;
 
 import net.choc.entry.plugins.FSchema;
-import net.choc.entry.plugins.SinkSchema;
-import net.choc.entry.plugins.SourceSchema;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
-import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.connector.pulsar.sink.PulsarSink;
 import org.apache.flink.connector.pulsar.source.PulsarSource;
 import org.apache.flink.connector.pulsar.source.PulsarSourceBuilder;
 import org.apache.flink.connector.pulsar.source.PulsarSourceOptions;
 import org.apache.flink.connector.pulsar.source.enumerator.cursor.StartCursor;
-import org.apache.flink.connector.pulsar.source.reader.deserializer.PulsarDeserializationSchema;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
-import org.apache.flink.streaming.connectors.pulsar.FlinkPulsarSink;
-import org.apache.flink.streaming.connectors.pulsar.internal.PulsarOptions;
-import org.apache.flink.util.Collector;
-import org.apache.pulsar.client.api.Message;
-import org.apache.pulsar.client.api.MessageId;
-import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.SubscriptionType;
+import org.apache.pulsar.client.impl.schema.ByteSchema;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -42,7 +35,7 @@ public class Engine {
         this.jobName =jobName;
     }
 
-    public DataStream<byte[]> SetParams() {
+    public DataStream<String> SetParams() {
         env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(5, Time.seconds(10)));
         env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
@@ -55,39 +48,13 @@ public class Engine {
         env.getCheckpointConfig().setCheckpointInterval(30000);
         env.getCheckpointConfig().setMinPauseBetweenCheckpoints(30000);
 
-        Properties prop = new Properties();
-        prop.setProperty(PulsarOptions.TOPIC_SINGLE_OPTION_KEY, "persistent://public/default/my_topic");
-        prop.setProperty(PulsarOptions.ENABLE_KEY_HASH_RANGE_KEY, String.valueOf(true));
-        prop.setProperty(PulsarOptions.SUBSCRIPTION_ROLE_OPTION_KEY, "NAE");
-
-        PulsarSourceBuilder<byte[]> sourceBuilder = PulsarSource.builder()
-            .setAdminUrl("http://192.168.131.129:32670")
-            .setServiceUrl("pulsar://192.168.131.129:32669")
-            .setTopics("persistent://public/default/my_topic")
-            .setDeserializationSchema(new FSchema())
-            .setSubscriptionType(SubscriptionType.Key_Shared)
-            .setSubscriptionName("Test")
-            .setStartCursor(StartCursor.latest())
-            .setConfig(PulsarSourceOptions.PULSAR_ENABLE_AUTO_ACKNOWLEDGE_MESSAGE, true);
-
-//        DurableSource<byte[]> source =
-//            new DurableSource<>(
-//                "pulsar://192.168.131.129:32669",
-//                "http://192.168.131.129:32670",
-//                new SourceSchema(), prop)
-//                .setStartFromSubscription("test", MessageId.latest)
-//                .assignTimestampsAndWatermarks(WatermarkStrategy.noWatermarks());
-        return env.fromSource(sourceBuilder.build(), WatermarkStrategy.noWatermarks(), "Source").uid("test");
+        return env.addSource(new MySource(), "Source", TypeInformation.of(String.class)).uid("test");
     }
 
-    public void SetEnd(DataStream<byte[]> bottleNeck) {
+    public void SetEnd(DataStream<String> bottleNeck) {
         Properties prop = new Properties();
 
-        SinkFunction<byte[]> sink = new FlinkPulsarSink<>(
-                "pulsar://192.168.131.129:32669",
-                "http://192.168.131.129:32670",
-                Optional.of("persistent://public/default/my_topic_out"),
-                prop, new SinkSchema());
+        SinkFunction<String> sink = new PrintSinkFunction<>();
         bottleNeck.addSink(sink);
     }
 
