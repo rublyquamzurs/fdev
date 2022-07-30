@@ -32,7 +32,7 @@ public class Main {
                         throw new FlinkRuntimeException("exit");
                 }
                 System.out.println(info);
-                collector.collect((info + " mark").getBytes(StandardCharsets.UTF_8));
+                collector.collect((info + " -  mark").getBytes(StandardCharsets.UTF_8));
             }
         });
         engine.SetEnd(bottle);
