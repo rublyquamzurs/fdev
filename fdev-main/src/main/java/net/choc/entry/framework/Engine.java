@@ -1,6 +1,7 @@
 package net.choc.entry.framework;
 
 import net.choc.entry.plugins.FSchema;
+import net.choc.entry.sinks.FileSink;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
@@ -54,7 +55,7 @@ public class Engine {
     public void SetEnd(DataStream<String> bottleNeck) {
         Properties prop = new Properties();
 
-        SinkFunction<String> sink = new PrintSinkFunction<>();
+        SinkFunction<String> sink = new FileSink();
         bottleNeck.addSink(sink);
     }
 

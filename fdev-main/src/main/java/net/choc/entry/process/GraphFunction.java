@@ -21,7 +21,7 @@ public class GraphFunction extends KeyedProcessFunction<String, String, String> 
 
     @Override
     public void processElement(String s, KeyedProcessFunction<String, String, String>.Context context, Collector<String> collector) throws Exception {
-        System.out.println(s);
+        collector.collect("handle: " + s);
     }
 
     @Override
